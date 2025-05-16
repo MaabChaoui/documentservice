@@ -1,0 +1,42 @@
+spring:
+  multipart:
+    enabled: true
+    max-file-size: 200MB   # Set your preferred max size
+    max-request-size: 200MB
+  
+  application:
+    name: documentservice
+
+  datasource:
+    url: jdbc:postgresql://aws-0-eu-central-1.pooler.supabase.com:6543/postgres
+    username: postgres.qfclkugznedzgbplhrmi
+    password: supabase_database
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      idle-timeout: 60000
+      connection-timeout: 60000
+
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+# Optional logging/debugging
+logging:
+  level:
+    org.springframework.security: DEBUG
+
+server:
+  port: 8082
+
+s3:
+  endpoint: "http://localhost:9000" # MinIO endpoint
+  access-key: "minio-access-key"
+  secret-key: "minio-secret-key"
+  bucket-name: "documents"
+
