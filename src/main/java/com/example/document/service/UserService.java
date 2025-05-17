@@ -46,8 +46,8 @@ public class UserService {
         user.setName(request.getName());
         user.setEmail(request.getEmail());
         user.setRole(request.getRole());
-        user.setStatus("DEACTIVATED");
-        // user.setStatus(request.getStatus());
+        // user.setStatus("DEACTIVATED");
+        user.setStatus(request.getStatus());
 
         return userRepository.save(user);
     }
@@ -60,21 +60,39 @@ public class UserService {
         return userRepository.findAll();
     }
 
+    // @Transactional
+    // public User assignDepartments(Long userId, List<Long> departmentIds) {
+    //     User user = userRepository.findById(userId)
+    //             .orElseThrow(() -> new RuntimeException("User not found"));
+    //     Set<Department> newDepartments = new HashSet<>(departmentRepository.findAllById(departmentIds));
+    //     Set<Department> updatedDepartments = new HashSet<>(user.getDepartments());
+    //     updatedDepartments.addAll(newDepartments);
+    //     user.setDepartments(updatedDepartments);
+    //     // Sync with Supabase column
+    //     user.setDepartmentIdsString(updatedDepartments.stream()
+    //             .map(d -> String.valueOf(d.getId()))
+    //             .collect(Collectors.joining(",")));
+    //     return userRepository.save(user);
+    // }
     @Transactional
     public User assignDepartments(Long userId, List<Long> departmentIds) {
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Set<Department> newDepartments = new HashSet<>(departmentRepository.findAllById(departmentIds));
+        // 1) Load the departments referenced in the payload
+        Set<Department> freshSet
+                = new HashSet<>(departmentRepository.findAllById(departmentIds));
 
-        Set<Department> updatedDepartments = new HashSet<>(user.getDepartments());
-        updatedDepartments.addAll(newDepartments);
-        user.setDepartments(updatedDepartments);
+        // 2) Wipe the user’s existing links and replace with the new ones
+        user.getDepartments().clear();        // <-- remove every old link
+        user.getDepartments().addAll(freshSet);
 
-        // Sync with Supabase column
-        user.setDepartmentIdsString(updatedDepartments.stream()
-                .map(d -> String.valueOf(d.getId()))
-                .collect(Collectors.joining(",")));
+        // 3) (legacy) keep the CSV column in sync
+        user.setDepartmentIdsString(
+                freshSet.stream()
+                        .map(d -> String.valueOf(d.getId()))
+                        .collect(Collectors.joining(",")));
 
         return userRepository.save(user);
     }

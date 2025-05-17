@@ -1,11 +1,24 @@
 package com.example.document.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.*;
-import lombok.*;
-
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
+
+import org.hibernate.annotations.CreationTimestamp;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "departments")
@@ -22,6 +35,12 @@ public class Department {
 
     @Column(name = "department_name")
     private String name;
+    
+    @CreationTimestamp                // <-- Hibernate sets this on INSERT
+    @Column(name = "created_at",
+            // nullable = false,
+            updatable = false)        // never changes after insert
+    private LocalDateTime createdAt;
 
     @Builder.Default
     @ManyToMany(mappedBy = "departments")

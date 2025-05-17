@@ -1,11 +1,13 @@
 package com.example.document.service;
 
-import com.example.document.dto.DepartmentRequest;
-import com.example.document.model.Department;
-import com.example.document.repository.DepartmentRepository;
-import org.springframework.stereotype.Service;
 import java.util.List;
 
+import org.springframework.stereotype.Service;
+
+import com.example.document.dto.DepartmentRequest;
+import com.example.document.dto.DepartmentSummary;
+import com.example.document.model.Department;
+import com.example.document.repository.DepartmentRepository;
 
 @Service
 public class DepartmentService {
@@ -21,21 +23,25 @@ public class DepartmentService {
         department.setName(request.getName());
         return departmentRepository.save(department);
     }
-    public List<Department> getAllDepartments() {
-        return departmentRepository.findAll();
+
+    // public List<Department> getAllDepartments() {
+    //     return departmentRepository.findAll();
+    // }
+    public List<DepartmentSummary> getAllDepartments() {
+        return departmentRepository.findAllWithUserCount();
     }
+
     public Department updateDepartment(Long id, String newName) {
-    Department department = departmentRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Department not found"));
-    department.setName(newName);
-    return departmentRepository.save(department);
-}
+        Department department = departmentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Department not found"));
+        department.setName(newName);
+        return departmentRepository.save(department);
+    }
 
-public void deleteDepartment(Long id) {
-    Department department = departmentRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Department not found"));
-    departmentRepository.delete(department);
-}
-
+    public void deleteDepartment(Long id) {
+        Department department = departmentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Department not found"));
+        departmentRepository.delete(department);
+    }
 
 }
