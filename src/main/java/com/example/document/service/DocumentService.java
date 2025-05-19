@@ -1,18 +1,21 @@
 package com.example.document.service;
 
-import com.example.document.dto.DocumentRequest;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.stereotype.Service;
+
 import com.example.document.dto.DocumentMetadataRequest;
-import com.example.document.model.*;
+import com.example.document.dto.DocumentRequest;
+import com.example.document.model.Category;
+import com.example.document.model.Department;
+import com.example.document.model.Document;
+import com.example.document.model.DocumentStatus;
 import com.example.document.repository.CategoryRepository;
 import com.example.document.repository.DepartmentRepository;
 import com.example.document.repository.DocumentRepository;
 import com.example.document.security.UserContext;
-import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class DocumentService {
@@ -22,8 +25,8 @@ public class DocumentService {
     private final DepartmentRepository departmentRepository;
 
     public DocumentService(DocumentRepository documentRepository,
-                           CategoryRepository categoryRepository,
-                           DepartmentRepository departmentRepository) {
+            CategoryRepository categoryRepository,
+            DepartmentRepository departmentRepository) {
         this.documentRepository = documentRepository;
         this.categoryRepository = categoryRepository;
         this.departmentRepository = departmentRepository;
@@ -53,23 +56,42 @@ public class DocumentService {
                 .department(departmentOpt.get())
                 .createdBy(UserContext.get().getEmail())
                 .status(DocumentStatus.PENDING)
-                .creationDate(LocalDateTime.now())
-                .fileUrl(request.getFileUrl())  // Set file URL from S3
+                .createdAt(LocalDateTime.now())
+                .fileUrl(request.getFileUrl()) // Set file URL from S3
                 .build();
 
         return documentRepository.save(document);
     }
 
     public List<Document> getMyDocuments() {
-        List<Integer> userDepartments = UserContext.get().getDepartments();
-        List<Long> deptIds = userDepartments.stream()
-                .map(Integer::longValue)
-                .collect(Collectors.toList());
+        // List<Integer> userDepartments = UserContext.get().getDepartments();
+        // List<Long> deptIds = userDepartments.stream()
+        //         .map(Integer::longValue)
+        //         .collect(Collectors.toList());
 
-        List<Department> departments = departmentRepository.findAllById(deptIds);
-        return documentRepository.findByDepartmentIn(departments);
+        // List<Department> departments = departmentRepository.findAllById(deptIds);
+        // return documentRepository.findByDepartmentIn(departments);
+        String email = UserContext.get().getEmail();
+        return documentRepository.findAllVisibleToUserByEmail(email);
     }
 
+    // public Document updateMetadata(Long documentId, DocumentMetadataRequest request) {
+    //     Document document = documentRepository.findById(documentId)
+    //             .orElseThrow(() -> new RuntimeException("Document not found"));
+    //     if (!document.getCreatedBy().equals(UserContext.get().getEmail())) {
+    //         throw new RuntimeException("You are not the creator of this document");
+    //     }
+    //     if (request.getStatus() != null) {
+    //         document.setStatus(DocumentStatus.valueOf(request.getStatus().toUpperCase()));
+    //     }
+    //     if (request.getTitle() != null && !request.getTitle().isBlank()) {
+    //         document.setTitle(request.getTitle());
+    //     }
+    //     Optional<Category> categoryOpt = categoryRepository.findByName(request.getCategory());
+    //     Optional<Department> departmentOpt = departmentRepository.findByName(request.getDepartment());
+    //     // update category and department if not null here
+    //     return documentRepository.save(document);
+    // }
     public Document updateMetadata(Long documentId, DocumentMetadataRequest request) {
         Document document = documentRepository.findById(documentId)
                 .orElseThrow(() -> new RuntimeException("Document not found"));
@@ -78,13 +100,28 @@ public class DocumentService {
             throw new RuntimeException("You are not the creator of this document");
         }
 
+        // Update status if provided
         if (request.getStatus() != null) {
             document.setStatus(DocumentStatus.valueOf(request.getStatus().toUpperCase()));
         }
 
+        // Update title if provided and not blank
         if (request.getTitle() != null && !request.getTitle().isBlank()) {
             document.setTitle(request.getTitle());
         }
+
+        // Update category if provided and found
+        if (request.getCategory() != null && !request.getCategory().isBlank()) {
+            Optional<Category> categoryOpt = categoryRepository.findByName(request.getCategory());
+            categoryOpt.ifPresent(document::setCategory);
+        }
+
+        // Update department if provided and found
+        if (request.getDepartment() != null && !request.getDepartment().isBlank()) {
+            Optional<Department> departmentOpt = departmentRepository.findByName(request.getDepartment());
+            departmentOpt.ifPresent(document::setDepartment);
+        }
+
         return documentRepository.save(document);
     }
 

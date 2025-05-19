@@ -46,7 +46,6 @@ public class UserService {
         user.setName(request.getName());
         user.setEmail(request.getEmail());
         user.setRole(request.getRole());
-        // user.setStatus("DEACTIVATED");
         user.setStatus(request.getStatus());
 
         return userRepository.save(user);

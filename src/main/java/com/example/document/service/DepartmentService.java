@@ -1,6 +1,7 @@
 package com.example.document.service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -8,6 +9,7 @@ import com.example.document.dto.DepartmentRequest;
 import com.example.document.dto.DepartmentSummary;
 import com.example.document.model.Department;
 import com.example.document.repository.DepartmentRepository;
+import com.example.document.security.UserContext;
 
 @Service
 public class DepartmentService {
@@ -27,8 +29,26 @@ public class DepartmentService {
     // public List<Department> getAllDepartments() {
     //     return departmentRepository.findAll();
     // }
+
+    // public List<DepartmentSummary> getAllDepartments() {
+    //     return departmentRepository.findAllWithUserCount();
+    // }
+
     public List<DepartmentSummary> getAllDepartments() {
-        return departmentRepository.findAllWithUserCount();
+        // check the user’s role
+        String role = UserContext.get().getRole();
+        if ("ADMIN".equals(role)) {
+            // admins see everything
+            return departmentRepository.findAllWithUserCount();
+        }
+
+        // non-admins see only their own depts
+        List<Integer> deptIdsInt = UserContext.get().getDepartments(); 
+        List<Long> deptIds = deptIdsInt.stream()
+                                       .map(Integer::longValue)
+                                       .collect(Collectors.toList());
+
+        return departmentRepository.findByIdsWithUserCount(deptIds);
     }
 
     public Department updateDepartment(Long id, String newName) {

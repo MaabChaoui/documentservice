@@ -1,10 +1,12 @@
 package com.example.document.service;
 
-import com.example.document.model.Category;
-import com.example.document.repository.CategoryRepository;
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import com.example.document.dto.CategorySummary;
+import com.example.document.model.Category;
+import com.example.document.repository.CategoryRepository;
 
 @Service
 public class CategoryService {
@@ -21,8 +23,8 @@ public class CategoryService {
         return categoryRepository.save(category);
     }
 
-    public List<Category> getAllCategories() {
-        return categoryRepository.findAll();
+    public List<CategorySummary> getAllCategories() {
+        return categoryRepository.findAllWithDocumentCount();
     }
 
     public Category updateCategory(Long id, String name) {

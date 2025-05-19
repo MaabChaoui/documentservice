@@ -1,11 +1,19 @@
 package com.example.document.model;
 
 import java.time.LocalDateTime;
-import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+
+import org.hibernate.annotations.CreationTimestamp;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
@@ -22,6 +30,9 @@ public class Category {
     @Column(name = "category_name")
     private String name;
 
-    @Column(name = "created_at")
+    @CreationTimestamp                // <-- Hibernate sets this on INSERT
+    @Column(name = "created_at",
+            // nullable = false,
+            updatable = false)        // never changes after insert
     private LocalDateTime createdAt;
 }

@@ -1,12 +1,20 @@
 package com.example.document.controller;
 
+import java.util.List;
+
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable; // ✅ import the new DTO
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.example.document.dto.CategoryRequest;
+import com.example.document.dto.CategorySummary;
 import com.example.document.model.Category;
 import com.example.document.service.CategoryService;
-import org.springframework.web.bind.annotation.*;
-import com.example.document.dto.CategoryRequest; // ✅ import the new DTO
-
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/categories")
@@ -26,7 +34,7 @@ public class CategoryController {
 
     // ✅ Get all categories
     @GetMapping
-    public List<Category> getAll() {
+    public List<CategorySummary> getAll() {
         return categoryService.getAllCategories();
     }
 

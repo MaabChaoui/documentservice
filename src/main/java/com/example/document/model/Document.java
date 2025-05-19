@@ -34,7 +34,7 @@ public class Document {
     private String fileUrl;
 
     @Column(name = "created_at")
-    private LocalDateTime creationDate;
+    private LocalDateTime createdAt;
 
     private String createdBy;
 
