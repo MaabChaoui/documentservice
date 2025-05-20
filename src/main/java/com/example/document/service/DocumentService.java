@@ -11,7 +11,6 @@ import com.example.document.dto.DocumentRequest;
 import com.example.document.model.Category;
 import com.example.document.model.Department;
 import com.example.document.model.Document;
-import com.example.document.model.DocumentStatus;
 import com.example.document.repository.CategoryRepository;
 import com.example.document.repository.DepartmentRepository;
 import com.example.document.repository.DocumentRepository;
@@ -55,22 +54,17 @@ public class DocumentService {
                 .category(categoryOpt.get())
                 .department(departmentOpt.get())
                 .createdBy(UserContext.get().getEmail())
-                .status(DocumentStatus.PENDING)
+                .status("PENDING")
                 .createdAt(LocalDateTime.now())
                 .fileUrl(request.getFileUrl()) // Set file URL from S3
+                .type(request.getType())
+                .size(request.getSize())
                 .build();
 
         return documentRepository.save(document);
     }
 
     public List<Document> getMyDocuments() {
-        // List<Integer> userDepartments = UserContext.get().getDepartments();
-        // List<Long> deptIds = userDepartments.stream()
-        //         .map(Integer::longValue)
-        //         .collect(Collectors.toList());
-
-        // List<Department> departments = departmentRepository.findAllById(deptIds);
-        // return documentRepository.findByDepartmentIn(departments);
         String email = UserContext.get().getEmail();
         return documentRepository.findAllVisibleToUserByEmail(email);
     }
@@ -102,7 +96,7 @@ public class DocumentService {
 
         // Update status if provided
         if (request.getStatus() != null) {
-            document.setStatus(DocumentStatus.valueOf(request.getStatus().toUpperCase()));
+            document.setStatus(request.getStatus().toUpperCase());
         }
 
         // Update title if provided and not blank

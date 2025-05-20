@@ -9,4 +9,6 @@ public class DocumentRequest {
     private Long departmentId;
     private String fileUrl;
     private String status;
+    private String type;
+    private Long size;
 }

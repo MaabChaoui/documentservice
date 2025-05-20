@@ -1,20 +1,25 @@
 package com.example.document.controller;
 
-import com.example.document.dto.UserRequest;
-import com.example.document.dto.UserResponse;
-import com.example.document.model.User;
-import com.example.document.service.UserService;
-
-import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
+import com.example.document.dto.UserRequest;
+import com.example.document.dto.UserResponse;
 import com.example.document.dto.UserUpdateRequest;
+import com.example.document.model.User;
 import com.example.document.service.UserQueryService;
+import com.example.document.service.UserService;
 
 @RestController
 @RequestMapping("/api/users")
@@ -58,12 +63,12 @@ public class UserController {
         Page<UserResponse> result = queryService.list(page, perPage, search);
         return ResponseEntity.ok(result);
     }
-    // @GetMapping
-    // public List<UserResponse> getAllUsers() {
-    //     return userService.getAllUsers().stream()
-    //             .map(UserResponse::new)
-    //             .collect(Collectors.toList());
-    // }
+
+    @GetMapping("/{email}")
+    public ResponseEntity<UserResponse> getUserByEmail(@PathVariable String email) {
+        User user = userService.getUserByEmail(email);
+        return ResponseEntity.ok(new UserResponse(user));
+    }
 
     @PutMapping("/{id}/assign-departments")
     public UserResponse assignDepartments(@PathVariable Long id, @RequestBody List<Long> departmentIds) {

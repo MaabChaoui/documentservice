@@ -1,10 +1,10 @@
 package com.example.document.controller;
 
-import java.util.List;
-import java.util.Optional;  // Import this class
-import java.util.stream.Collectors;
+import java.util.Optional;
 
-import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;  // Import this class
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,8 +17,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.example.document.dto.DocumentMetadataRequest;
 import com.example.document.dto.DocumentRequest;
+import com.example.document.dto.DocumentResponse;
 import com.example.document.dto.DocumentWithDownloadUrl;
 import com.example.document.model.Document;
+import com.example.document.service.DocumentQueryService;
 import com.example.document.service.DocumentService;
 import com.example.document.service.S3Service;
 
@@ -26,12 +28,15 @@ import com.example.document.service.S3Service;
 @RequestMapping("/api/documents")
 public class DocumentController {
 
+    private final DocumentQueryService queryService;
+
     private final DocumentService documentService;
     private final S3Service s3Service;
 
-    public DocumentController(DocumentService documentService, S3Service s3Service) {
+    public DocumentController(DocumentService documentService, S3Service s3Service, DocumentQueryService queryService) {
         this.documentService = documentService;
         this.s3Service = s3Service;
+        this.queryService = queryService;
     }
 
     // Create a document with a file upload
@@ -50,6 +55,8 @@ public class DocumentController {
             request.setCategoryId(categoryId);
             request.setDepartmentId(departmentId);
             request.setFileUrl(fileName);  // Set the file URL after uploading to S3
+            request.setType(file.getContentType());
+            request.setSize(file.getSize());
 
             // Create and return the document
             return documentService.createDocument(request);
@@ -92,24 +99,25 @@ public class DocumentController {
         return documentService.updateMetadata(id, request);  // Ensure you're passing DocdumentMetadataRequest
     }
 
-    // Get all documents related to the user's departments and include pre-signed download URLs
     // @GetMapping
     // public List<DocumentWithDownloadUrl> getMyDocuments() {
     //     List<Document> documents = documentService.getMyDocuments();
     //     // Map documents to include download URLs
     //     return documents.stream().map(document -> {
     //         String fileName = document.getFileUrl();  // Assuming file URL is stored in 'fileUrl'
-    //         // Generate a pre-signed URL for the document
     //         try {
     //             String presignedUrl = s3Service.generatePresignedUrl(fileName);
-    //             // Return metadata along with pre-signed URL
     //             return new DocumentWithDownloadUrl(
-    //                 // TODO
-    //                 document.getId(),
-    //                 document.getTitle(),
-    //                 document.getCategory().getName(),  // Assuming category has a name
-    //                 document.getDepartment().getName(),  // Assuming department has a name
-    //                 presignedUrl
+    //                     document.getId(),
+    //                     document.getTitle(),
+    //                     document.getDepartment().getName(),
+    //                     document.getCategory().getName(),
+    //                     document.getCreatedAt(), // assuming field is called createdAt (LocalDateTime)
+    //                     document.getCreatedBy(), // assuming createdBy is a User entity
+    //                     document.getStatus(),
+    //                     document.getType(),
+    //                     document.getSize(),
+    //                     presignedUrl
     //             );
     //         } catch (Exception e) {
     //             throw new RuntimeException("Error generating pre-signed URL: " + e.getMessage(), e);
@@ -117,30 +125,13 @@ public class DocumentController {
     //     }).collect(Collectors.toList());
     // }
     @GetMapping
-    public List<DocumentWithDownloadUrl> getMyDocuments() {
-        List<Document> documents = documentService.getMyDocuments();
-
-        // Map documents to include download URLs
-        return documents.stream().map(document -> {
-            String fileName = document.getFileUrl();  // Assuming file URL is stored in 'fileUrl'
-
-            try {
-                String presignedUrl = s3Service.generatePresignedUrl(fileName);
-
-                return new DocumentWithDownloadUrl(
-                        document.getId(),
-                        document.getTitle(),
-                        document.getCategory().getName(),
-                        document.getDepartment().getName(),
-                        document.getCreatedAt(), // assuming field is called createdAt (LocalDateTime)
-                        document.getCreatedBy(), // assuming createdBy is a User entity
-                        document.getStatus(),
-                        presignedUrl
-                );
-            } catch (Exception e) {
-                throw new RuntimeException("Error generating pre-signed URL: " + e.getMessage(), e);
-            }
-        }).collect(Collectors.toList());
+    public ResponseEntity<Page<DocumentResponse>> allDocuments(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "5") int perPage,
+            @RequestParam(defaultValue = "") String search
+    ) {
+        Page<DocumentResponse> result = queryService.list(page, perPage, search);
+        return ResponseEntity.ok(result);
     }
 
     // Delete a document (only creator allowed) and remove the file from S3

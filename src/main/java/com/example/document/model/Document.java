@@ -1,10 +1,21 @@
 package com.example.document.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import jakarta.persistence.*;
-import lombok.*;
-
 import java.time.LocalDateTime;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "documents")
@@ -38,6 +49,14 @@ public class Document {
 
     private String createdBy;
 
-    @Enumerated(EnumType.STRING)
-    private DocumentStatus status;
+    private String status;
+
+    @Column(name = "file_type")
+    private String type;
+
+    /**
+     * File size in bytes
+     */
+    @Column(name = "file_size")
+    private Long size;
 }
