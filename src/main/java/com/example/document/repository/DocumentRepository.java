@@ -39,10 +39,11 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
 
     long countByCreatedAtAfter(LocalDateTime cutoff);
 
-    Page<Document> findByTitleContainingIgnoreCaseOrDepartment_NameContainingIgnoreCaseOrCategory_NameContainingIgnoreCase(
+    Page<Document> findByTitleContainingIgnoreCaseOrDepartment_NameContainingIgnoreCaseOrCategory_NameContainingIgnoreCaseOrCreatedByContainingIgnoreCase(
         String title,
         String deptName,
         String catName,
+        String createdByEmail,
         Pageable pageable
     );
 }
